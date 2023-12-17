@@ -9,5 +9,5 @@ npm i
 - Dont forget to add a .env file
 
 ## Env file structure:
-PORT=5000 or any random port
+PORT=5000 or any random port  </br>
 MONGO_URI= "mongodb:uri with username password and database name"
