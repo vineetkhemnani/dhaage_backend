@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import connectDB from './db/connectDB.js'
 import cookieParser from 'cookie-parser'
 
+import userRoutes from './routes/userRoutes.js'
+
 dotenv.config()
 
 connectDB()
