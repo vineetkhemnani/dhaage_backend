@@ -10,4 +10,5 @@ npm i
 
 ## Env file structure:
 PORT=5000 or any random port  </br>
-MONGO_URI= "mongodb:uri with username password and database name"
+MONGO_URI= "mongodb:uri with username password and database name" </br>
+JWT_SECRET= "any random string"
