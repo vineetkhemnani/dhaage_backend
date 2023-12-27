@@ -154,7 +154,10 @@ export const updateUser = async (req, res) => {
 
     // protect other user's privacy
     // convert userId to string becoz its an OBJECT
-    if(req.params.id !== userId.toString()) return res.status(400).json({message:"You cannot update another user's profile"})
+    if (req.params.id !== userId.toString())
+      return res
+        .status(400)
+        .json({ message: "You cannot update another user's profile" })
 
     // if password is being changed, hash it before storing
     if (password) {
@@ -176,5 +179,25 @@ export const updateUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message })
     console.log('Error in updateUser: ', err.message)
+  }
+}
+
+// getting user profile
+export const getUserProfile = async (req, res) => {
+  const { username } = req.params
+  try {
+    // find user using username and select everything except the password
+    const user = await User.findOne({ username })
+      .select('-password')
+      .select('-updatedAt')
+
+    // if user not present return user not found
+    if (!user) return res.status(400).json({ message: 'User not found' })
+
+    // return user if status 200
+    res.status(200).json(user)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+    console.log('Error in getUserProfile: ', err.message)
   }
 }
