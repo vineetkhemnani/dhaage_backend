@@ -74,7 +74,42 @@ export const deletePost = async (req, res) => {
     await Post.findByIdAndDelete(id)
 
     // status 200 means okay => return post as response
-    res.status(200).json({ message: "Post deleted successfully" })
+    res.status(200).json({ message: 'Post deleted successfully' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+    console.log(err)
+  }
+}
+
+// like/unlike post controller
+export const likeUnlikePost = async (req, res) => {
+  try {
+    // const {id:postId} = req.params
+    const postId = req.params.id
+    const userId = req.user._id
+
+    // find the post by mongoose findById method
+    const post = await Post.findById(postId)
+
+    // if post not found return 404
+    if (!post) return res.status(404).json({ message: 'Post not found' })
+
+    // check if user already liked the post (check if userId present in likes array)
+    const userLikedPost = post.likes.includes(userId) // boolean value => true/false
+
+    if (userLikedPost) {
+      // unlike the post
+
+      // remove userId using $pull from likes array where _id of post => postId
+      await Post.updateOne({ _id: postId }, { $pull: { likes: userId } })
+      res.status(200).json({message: "Post unliked successfully"})
+    } else {
+      // like the post
+      // add userId to likes array of post
+      post.likes.push(userId)
+      await post.save()
+      res.status(200).json({message: "Post liked successfully"})
+    }
   } catch (err) {
     res.status(500).json({ message: err.message })
     console.log(err)
