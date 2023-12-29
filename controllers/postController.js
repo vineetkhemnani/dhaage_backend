@@ -1,6 +1,7 @@
 import Post from '../models/postModel.js'
 import User from '../models/userModel.js'
 
+// method/controller to create a post
 export const createPost = async (req, res) => {
   try {
     const { postedBy, text, img } = req.body
@@ -35,4 +36,47 @@ export const createPost = async (req, res) => {
   }
 }
 
+// method/controller to get a post
+export const getPost = async (req, res) => {
+  // extract dynamic id from params
+  const { id } = req.params
+  try {
+    // find the post by mongoose findById method
+    const post = await Post.findById(id)
 
+    // if post not found return 404
+    if (!post) return res.status(404).json({ message: 'Post not found' })
+
+    // status 200 means okay => return post as response
+    res.status(200).json({ post })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+    console.log(err)
+  }
+}
+
+// controller/method to delete a post
+export const deletePost = async (req, res) => {
+  // extract dynamic id from params
+  const { id } = req.params
+  try {
+    // find the post by mongoose findById method
+    const post = await Post.findById(id)
+
+    // if post not found return 404
+    if (!post) return res.status(404).json({ message: 'Post not found' })
+
+    // check if the person who posted is the one trying to delete the post
+    if (post.postedBy.toString() !== req.user._id.toString())
+      return res.status(401).json({ message: 'Unauthorized to delete post' })
+
+    // find the post by id and delete the post
+    await Post.findByIdAndDelete(id)
+
+    // status 200 means okay => return post as response
+    res.status(200).json({ message: "Post deleted successfully" })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+    console.log(err)
+  }
+}
