@@ -148,3 +148,42 @@ export const replyToPost = async (req, res) => {
     console.log(err)
   }
 }
+
+export const getFeedPosts = async (req, res) => {
+  try {
+    // console.log(req)
+    const userId = req.user._id
+    // console.log(userId)
+    const user = await User.findById(userId)
+
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    // following array => people the user is following
+    const following = user.following
+    // find all posts that are posted by people the user is following and sort by createdAt date in descending order
+    const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({createdAt:-1})
+
+    res.status(200).json({message:"feed",feedPosts})
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+    console.log(err)
+  }
+}
+
+export const getUserPosts = async (req, res) => {
+  const { username } = req.params
+  try {
+    const user = await User.findOne({ username })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    const posts = await Post.find({ postedBy: user._id }).sort({
+      createdAt: -1,
+    })
+
+    res.status(200).json(posts)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
