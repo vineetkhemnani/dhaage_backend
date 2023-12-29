@@ -4,6 +4,7 @@ import {
   deletePost,
   getPost,
   likeUnlikePost,
+  replyToPost,
 } from '../controllers/postController.js'
 import protectRoute from '../middlewares/protectRoute.js'
 const router = express.Router()
@@ -16,4 +17,7 @@ router.get('/:id', getPost)
 router.delete('/:id', protectRoute, deletePost)
 // endpoint that acts when user likes/unlikes a post
 router.post('/like/:id', protectRoute, likeUnlikePost)
+// endpoint that acts when a user tries to add a reply
+router.post('/reply/:id', protectRoute, replyToPost)
+
 export default router

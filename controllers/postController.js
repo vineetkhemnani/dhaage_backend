@@ -102,14 +102,47 @@ export const likeUnlikePost = async (req, res) => {
 
       // remove userId using $pull from likes array where _id of post => postId
       await Post.updateOne({ _id: postId }, { $pull: { likes: userId } })
-      res.status(200).json({message: "Post unliked successfully"})
+      res.status(200).json({ message: 'Post unliked successfully' })
     } else {
       // like the post
       // add userId to likes array of post
       post.likes.push(userId)
       await post.save()
-      res.status(200).json({message: "Post liked successfully"})
+      res.status(200).json({ message: 'Post liked successfully' })
     }
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+    console.log(err)
+  }
+}
+
+// reply to post method/controller
+export const replyToPost = async (req, res) => {
+  try {
+    const { text } = req.body
+    // const {id:postId} = req.params
+    const postId = req.params.id
+    // get user details from middleware
+    const userId = req.user._id
+    const userProfilePic = req.user.profilePicture
+    const username = req.user.username
+
+    if (!text) return res.status(400).json({ message: 'Text cannot be empty' })
+
+    // find the post by mongoose findById method
+    const post = await Post.findById(postId)
+
+    // if post not found return 404
+    if (!post) return res.status(404).json({ message: 'Post not found' })
+
+    // create a reply object to push
+    const reply = { userId, text, userProfilePic, username }
+
+    // push reply object to replies array inside post
+    post.replies.push(reply)
+    await post.save()
+
+    res.status(200).json({ message: 'Reply added successfully', post })
   } catch (err) {
     res.status(500).json({ message: err.message })
     console.log(err)
