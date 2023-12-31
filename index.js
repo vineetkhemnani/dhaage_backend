@@ -20,7 +20,9 @@ app.use(cookieParser()) //parse cookies
 // Routes
 app.use('/api/users', userRoutes)
 app.use('/api/posts', postRoutes)
-
+app.use('/',(req,res)=>{
+  res.send("Hello")
+})
 app.listen(PORT, () => {
   console.log(`Server started at http://localhost:${PORT}`)
 })
