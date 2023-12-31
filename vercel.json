@@ -16,7 +16,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://your-api.domain/$1"
+      "destination": "https://threads-backend-2lcn.onrender.com/$1"
     },
     {
       "source": "/(.*)",
