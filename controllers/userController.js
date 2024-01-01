@@ -1,6 +1,7 @@
 import User from '../models/userModel.js'
 import bcrypt from 'bcryptjs'
 import generateTokenAndSetCookie from '../utils/helpers/generateTokenAndSetCookie.js'
+import { v2 as cloudinary } from 'cloudinary'
 
 export const signupUser = async (req, res) => {
   try {
@@ -149,7 +150,9 @@ export const followUnfollowUser = async (req, res) => {
 
 // update user
 export const updateUser = async (req, res) => {
-  const { name, email, username, password, profilePicture, bio } = req.body
+  const { name, email, username, password, bio } = req.body
+  // use let to store profilePicture as reassigning
+  let { profilePicture } = req.body
   const userId = req.user._id
   try {
     let user = await User.findById(userId)
@@ -170,6 +173,21 @@ export const updateUser = async (req, res) => {
       user.password = hashedPassword
     }
 
+    // console.log(profilePicture)
+    // if client sends a profilePicture in req body
+    if (profilePicture) {
+      // if there already exists a profilePicture => delete that first from cloudinary
+      if (user.profilePicture) {
+        await cloudinary.uploader.destroy(
+          user.profilePicture.split('/').pop().split('.')[0]
+        )
+      }
+      // upload to cloudinary and return a response
+      const uploadedResponse = await cloudinary.uploader.upload(profilePicture)
+      // store cloudinary image url in profilePicture
+      profilePicture = uploadedResponse.secure_url
+    }
+
     user.name = name || user.name
     user.email = email || user.email
     user.username = username || user.username
@@ -179,7 +197,10 @@ export const updateUser = async (req, res) => {
     // modified user saved in user variable
     user = await user.save()
 
-    res.status(200).json({ message: 'Profile updated successfully', user })
+    // password should be null in response
+    user.password = null
+
+    res.status(200).json(user)
   } catch (err) {
     res.status(500).json({ error: err.message })
     console.log('Error in updateUser: ', err.message)

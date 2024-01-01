@@ -23,6 +23,6 @@ router.post('/logout', logoutUser)
 // protectRoute acts as a middleware => cannot follow someone if you are not logged in
 router.post('/follow/:id', protectRoute, followUnfollowUser)
 // when you hit /api/users/update/:id => update user using the dynamic id of the user
-router.post('/update/:id', protectRoute, updateUser)
+router.put('/update/:id', protectRoute, updateUser)
 
 export default router
