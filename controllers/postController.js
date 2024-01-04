@@ -1,10 +1,11 @@
 import Post from '../models/postModel.js'
 import User from '../models/userModel.js'
+import { v2 as cloudinary } from 'cloudinary'
 
 // method/controller to create a post
 export const createPost = async (req, res) => {
   try {
-    const { postedBy, text, img } = req.body
+    let { postedBy, text, img } = req.body
     if (!postedBy || !text)
       return res.status(400).json({ error: 'Please fill all the fields' })
 
@@ -23,9 +24,16 @@ export const createPost = async (req, res) => {
       return res.status(400).json({
         error: `Text length should be less than ${maxLength} characters`,
       })
-
+    // if img is present
+    if (img) {
+      // upload to cloudinary and return a response
+      const uploadedResponse = await cloudinary.uploader.upload(img)
+      // store cloudinary image url in img
+      img = uploadedResponse.secure_url
+    }
     // create a new post using schema
     const newPost = new Post({ postedBy, text, img })
+
     // save new post
     await newPost.save()
 
@@ -161,9 +169,11 @@ export const getFeedPosts = async (req, res) => {
     // following array => people the user is following
     const following = user.following
     // find all posts that are posted by people the user is following and sort by createdAt date in descending order
-    const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({createdAt:-1})
+    const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({
+      createdAt: -1,
+    })
 
-    res.status(200).json({message:"feed",feedPosts})
+    res.status(200).json({ message: 'feed', feedPosts })
   } catch (err) {
     res.status(500).json({ error: err.message })
     console.log(err)
