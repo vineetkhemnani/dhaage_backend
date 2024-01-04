@@ -6,22 +6,22 @@ export const createPost = async (req, res) => {
   try {
     const { postedBy, text, img } = req.body
     if (!postedBy || !text)
-      return res.status(400).json({ message: 'Please fill all the fields' })
+      return res.status(400).json({ error: 'Please fill all the fields' })
 
     //   find user in User model => if not found return 404 error
     // postedBy => contains id of user who made the post
     const user = await User.findById(postedBy)
-    if (!user) return res.status(404).json({ message: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'User not found' })
 
     // user cannot make a post for another user
     if (user._id.toString() !== req.user._id.toString())
-      return res.status(401).json({ message: 'Unauthorized to create post' })
+      return res.status(401).json({ error: 'Unauthorized to create post' })
 
     // maxLength of post check
     const maxLength = 500
     if (text.length > maxLength)
       return res.status(400).json({
-        message: `Text length should be less than ${maxLength} characters`,
+        error: `Text length should be less than ${maxLength} characters`,
       })
 
     // create a new post using schema
@@ -31,7 +31,7 @@ export const createPost = async (req, res) => {
 
     res.status(201).json({ message: 'New post created successfully', newPost })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
     console.log(err)
   }
 }
@@ -45,12 +45,12 @@ export const getPost = async (req, res) => {
     const post = await Post.findById(id)
 
     // if post not found return 404
-    if (!post) return res.status(404).json({ message: 'Post not found' })
+    if (!post) return res.status(404).json({ error: 'Post not found' })
 
     // status 200 means okay => return post as response
     res.status(200).json({ post })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
     console.log(err)
   }
 }
@@ -64,11 +64,11 @@ export const deletePost = async (req, res) => {
     const post = await Post.findById(id)
 
     // if post not found return 404
-    if (!post) return res.status(404).json({ message: 'Post not found' })
+    if (!post) return res.status(404).json({ error: 'Post not found' })
 
     // check if the person who posted is the one trying to delete the post
     if (post.postedBy.toString() !== req.user._id.toString())
-      return res.status(401).json({ message: 'Unauthorized to delete post' })
+      return res.status(401).json({ error: 'Unauthorized to delete post' })
 
     // find the post by id and delete the post
     await Post.findByIdAndDelete(id)
@@ -76,7 +76,7 @@ export const deletePost = async (req, res) => {
     // status 200 means okay => return post as response
     res.status(200).json({ message: 'Post deleted successfully' })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
     console.log(err)
   }
 }
@@ -92,7 +92,7 @@ export const likeUnlikePost = async (req, res) => {
     const post = await Post.findById(postId)
 
     // if post not found return 404
-    if (!post) return res.status(404).json({ message: 'Post not found' })
+    if (!post) return res.status(404).json({ error: 'Post not found' })
 
     // check if user already liked the post (check if userId present in likes array)
     const userLikedPost = post.likes.includes(userId) // boolean value => true/false
@@ -111,7 +111,7 @@ export const likeUnlikePost = async (req, res) => {
       res.status(200).json({ message: 'Post liked successfully' })
     }
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
     console.log(err)
   }
 }
@@ -127,13 +127,13 @@ export const replyToPost = async (req, res) => {
     const userProfilePic = req.user.profilePicture
     const username = req.user.username
 
-    if (!text) return res.status(400).json({ message: 'Text cannot be empty' })
+    if (!text) return res.status(400).json({ error: 'Text cannot be empty' })
 
     // find the post by mongoose findById method
     const post = await Post.findById(postId)
 
     // if post not found return 404
-    if (!post) return res.status(404).json({ message: 'Post not found' })
+    if (!post) return res.status(404).json({ error: 'Post not found' })
 
     // create a reply object to push
     const reply = { userId, text, userProfilePic, username }
@@ -144,7 +144,7 @@ export const replyToPost = async (req, res) => {
 
     res.status(200).json({ message: 'Reply added successfully', post })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
     console.log(err)
   }
 }
@@ -156,7 +156,7 @@ export const getFeedPosts = async (req, res) => {
     // console.log(userId)
     const user = await User.findById(userId)
 
-    if (!user) return res.status(404).json({ message: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'User not found' })
 
     // following array => people the user is following
     const following = user.following
@@ -165,7 +165,7 @@ export const getFeedPosts = async (req, res) => {
 
     res.status(200).json({message:"feed",feedPosts})
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
     console.log(err)
   }
 }
@@ -178,6 +178,7 @@ export const getUserPosts = async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
+    // removes the createdAt field
     const posts = await Post.find({ postedBy: user._id }).sort({
       createdAt: -1,
     })
