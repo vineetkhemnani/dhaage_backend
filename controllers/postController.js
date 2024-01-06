@@ -173,7 +173,7 @@ export const getFeedPosts = async (req, res) => {
       createdAt: -1,
     })
 
-    res.status(200).json({ message: 'feed', feedPosts })
+    res.status(200).json(feedPosts)
   } catch (err) {
     res.status(500).json({ error: err.message })
     console.log(err)
