@@ -2,6 +2,7 @@ import User from '../models/userModel.js'
 import bcrypt from 'bcryptjs'
 import generateTokenAndSetCookie from '../utils/helpers/generateTokenAndSetCookie.js'
 import { v2 as cloudinary } from 'cloudinary'
+import mongoose from 'mongoose'
 
 export const signupUser = async (req, res) => {
   try {
@@ -209,12 +210,28 @@ export const updateUser = async (req, res) => {
 
 // getting user profile
 export const getUserProfile = async (req, res) => {
-  const { username } = req.params
+  // fetch user profile either by username or userId
+  // query is either username or id
+  const { query } = req.params
   try {
-    // find user using username and select everything except the password
-    const user = await User.findOne({ username })
+    let user;
+
+    // check if the query is valid userId
+    if(mongoose.Types.ObjectId.isValid(query)){
+      user = await User.findOne({ _id:query })
       .select('-password')
       .select('-updatedAt')
+    } else{
+      // query is username
+      user = await User.findOne({ username:query })
+      .select('-password')
+      .select('-updatedAt')
+    }
+
+    // find user using username and select everything except the password
+    // const user = await User.findOne({ username })
+      // .select('-password')
+      // .select('-updatedAt')
 
     // if user not present return user not found
     if (!user) return res.status(400).json({ error: 'User not found' })
