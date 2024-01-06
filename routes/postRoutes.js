@@ -20,9 +20,9 @@ router.get('/:id', getPost)
 // endpoint to delete a post using id
 router.delete('/:id', protectRoute, deletePost)
 // endpoint that acts when user likes/unlikes a post
-router.post('/like/:id', protectRoute, likeUnlikePost)
+router.put('/like/:id', protectRoute, likeUnlikePost)
 // endpoint that acts when a user tries to add a reply
-router.post('/reply/:id', protectRoute, replyToPost)
+router.put('/reply/:id', protectRoute, replyToPost)
 // endpoint that acts when a user tries to get his own posts
 router.get('/user/:username', getUserPosts)
 export default router
