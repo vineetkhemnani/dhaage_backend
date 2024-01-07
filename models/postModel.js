@@ -1,5 +1,26 @@
 import mongoose from 'mongoose'
 
+const replySchema = mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+    userProfilePic: {
+      type: String,
+    },
+    username: {
+      type: String,
+    },
+  },
+  { timestamps: true } // Enable timestamps for each reply
+)
+
 const postSchema = mongoose.Schema(
   {
     postedBy: {
@@ -20,25 +41,7 @@ const postSchema = mongoose.Schema(
       ref: 'User',
       default: [],
     },
-    replies: [
-      {
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-          required: true,
-        },
-        text: {
-          type: String,
-          required: true,
-        },
-        userProfilePic: {
-          type: String,
-        },
-        username: {
-          type: String,
-        },
-      },
-    ],
+    replies: [replySchema],
   },
   {
     timestamps: true,
