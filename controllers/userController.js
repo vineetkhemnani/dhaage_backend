@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import generateTokenAndSetCookie from '../utils/helpers/generateTokenAndSetCookie.js'
 import { v2 as cloudinary } from 'cloudinary'
 import mongoose from 'mongoose'
+import Post from '../models/postModel.js'
 
 export const signupUser = async (req, res) => {
   try {
@@ -198,6 +199,21 @@ export const updateUser = async (req, res) => {
     // modified user saved in user variable
     user = await user.save()
 
+    // when user updated on frontend change all user fields in each reply too
+    await Post.updateMany(
+      { 'replies.userId': userId },
+      {
+        $set: {
+          'replies.$[reply].username': user.username,
+          'replies.$[reply].userProfilePic': user.profilePicture,
+        },
+      },
+      {
+        arrayFilters: [{ 'reply.userId': userId }],
+      }
+    )
+
+
     // password should be null in response
     user.password = null
 
@@ -214,24 +230,24 @@ export const getUserProfile = async (req, res) => {
   // query is either username or id
   const { query } = req.params
   try {
-    let user;
+    let user
 
     // check if the query is valid userId
-    if(mongoose.Types.ObjectId.isValid(query)){
-      user = await User.findOne({ _id:query })
-      .select('-password')
-      .select('-updatedAt')
-    } else{
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      user = await User.findOne({ _id: query })
+        .select('-password')
+        .select('-updatedAt')
+    } else {
       // query is username
-      user = await User.findOne({ username:query })
-      .select('-password')
-      .select('-updatedAt')
+      user = await User.findOne({ username: query })
+        .select('-password')
+        .select('-updatedAt')
     }
 
     // find user using username and select everything except the password
     // const user = await User.findOne({ username })
-      // .select('-password')
-      // .select('-updatedAt')
+    // .select('-password')
+    // .select('-updatedAt')
 
     // if user not present return user not found
     if (!user) return res.status(400).json({ error: 'User not found' })
