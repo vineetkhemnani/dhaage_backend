@@ -156,11 +156,11 @@ export const replyToPost = async (req, res) => {
     // push adds at the back of array
     // unshift adds to front of array => better optimization for frontend
     post.replies.unshift(reply)
-    // sort replies array in descending order of timestamp
+    // // sort replies array in descending order of timestamp
     post.replies.sort((a, b) => b.createdAt - a.createdAt);
     await post.save()
 
-    res.status(200).json({ message: 'Reply added successfully', post })
+    res.status(200).json(reply)
   } catch (err) {
     res.status(500).json({ error: err.message })
     console.log(err)
