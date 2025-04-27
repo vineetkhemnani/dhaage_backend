@@ -42,7 +42,6 @@ passport.use(
           
           await user.save()
         }
-
         return done(null, user)
       } catch (err) {
         return done(err, null)
@@ -52,7 +51,7 @@ passport.use(
 )
 
 passport.serializeUser((user, done) => {
-  done(null, user.id)
+  done(null, user._id)
 })
 
 passport.deserializeUser(async (id, done) => {

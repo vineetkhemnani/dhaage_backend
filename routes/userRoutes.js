@@ -6,10 +6,10 @@ import {
   followUnfollowUser,
   updateUser,
   getUserProfile,
+  handleGoogleLogin,
 } from '../controllers/userController.js'
 import protectRoute from '../middlewares/protectRoute.js'
 import passport from 'passport'
-import generateTokenAndSetCookie from '../utils/helpers/generateTokenAndSetCookie.js'
 // server.js -> routes -> controllers
 const router = express.Router()
 
@@ -47,11 +47,14 @@ router.get(
   },
   (req, res) => {
     try {
-      // Generate JWT token and set cookie using the helper function
-      generateTokenAndSetCookie(req.user._id, res)
+      // Check if user exists in the request
+      if (!req.user) {
+        console.error('User not found in request after Google authentication')
+        return res.redirect('/login?error=user_not_found')
+      }
       
-      // Redirect to frontend with success
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success`)
+      // console.log(req.user)
+      handleGoogleLogin(req,res)
     } catch (error) {
       console.error('Error in Google callback:', error)
       res.redirect('/login?error=google_auth_failed')

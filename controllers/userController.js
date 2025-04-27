@@ -84,6 +84,26 @@ export const loginUser = async (req, res) => {
   }
 }
 
+export const handleGoogleLogin = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(400).json({ error: 'Google authentication failed' });
+    }
+    generateTokenAndSetCookie(user._id, res);
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      bio: user.bio,
+      profilePicture: user.profilePicture,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // logs out user by clearing the cookie
 export const logoutUser = async (req, res) => {
   try {
