@@ -20,7 +20,23 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       minLength: 6,
-      required: true,
+      required: function() {
+        // Password is required only if not using Google OAuth
+        return !this.googleId;
+      },
+      validate: {
+        validator: function(v) {
+          // Skip validation if this is a Google OAuth user
+          if (this.googleId) return true;
+          // Otherwise, ensure password meets minimum length
+          return v.length >= 6;
+        },
+        message: 'Password must be at least 6 characters long'
+      }
+    },
+    googleId: {
+      type: String,
+      sparse: true,
     },
     profilePicture: {
       type: String,

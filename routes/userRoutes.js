@@ -8,6 +8,8 @@ import {
   getUserProfile,
 } from '../controllers/userController.js'
 import protectRoute from '../middlewares/protectRoute.js'
+import passport from 'passport'
+import generateTokenAndSetCookie from '../utils/helpers/generateTokenAndSetCookie.js'
 // server.js -> routes -> controllers
 const router = express.Router()
 
@@ -25,5 +27,36 @@ router.post('/logout', logoutUser)
 router.post('/follow/:id', protectRoute, followUnfollowUser)
 // when you hit /api/users/update/:id => update user using the dynamic id of the user
 router.put('/update/:id', protectRoute, updateUser)
+
+// Google OAuth routes
+router.get(
+  '/auth/google',
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    prompt: 'select_account'
+  })
+)
+
+router.get(
+  '/auth/google/callback',
+  (req, res, next) => {
+    passport.authenticate('google', { 
+      failureRedirect: '/login',
+      session: true
+    })(req, res, next)
+  },
+  (req, res) => {
+    try {
+      // Generate JWT token and set cookie using the helper function
+      generateTokenAndSetCookie(req.user._id, res)
+      
+      // Redirect to frontend with success
+      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success`)
+    } catch (error) {
+      console.error('Error in Google callback:', error)
+      res.redirect('/login?error=google_auth_failed')
+    }
+  }
+)
 
 export default router
