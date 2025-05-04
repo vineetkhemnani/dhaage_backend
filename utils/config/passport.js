@@ -12,7 +12,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.BACKEND_URL_PROD}/api/users/auth/google/callback`,
+      callbackURL: `https://threads-copy-backend.vercel.app/api/users/auth/google/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -34,12 +34,12 @@ passport.use(
           // Update existing user's information
           user.name = displayName
           user.profilePicture = photos[0].value
-          
+
           // If user doesn't have a googleId, add it
           if (!user.googleId) {
             user.googleId = id
           }
-          
+
           await user.save()
         }
         return done(null, user)
