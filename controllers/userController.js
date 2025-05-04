@@ -91,7 +91,7 @@ export const handleGoogleLogin = async (req, res) => {
       return res.status(400).json({ error: 'Google authentication failed' })
     }
     generateTokenAndSetCookie(user._id, res)
-    res.redirect('http://localhost:3000')
+    res.redirect(`${process.env.FRONTEND_URL} || http://localhost:3000`)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
