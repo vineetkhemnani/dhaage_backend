@@ -3,34 +3,71 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import User from '../../models/userModel.js'
 import dotenv from 'dotenv'
 
-// Load environment variables
+// Ensure dotenv is configured early, ideally once in your main server file (server.js/index.js)
 dotenv.config()
-//Log environment variables during startup (for debugging purposes ONLY - remove sensitive logs before committing/production)
-// console.log('PASSPORT CONFIG - GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Loaded' : 'MISSING');
-// console.log('PASSPORT CONFIG - GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'Loaded' : 'MISSING');
+
+// --- Start Debug Logging ---
+console.log('[Passport Config] Loading Google Strategy...')
+const googleClientID = process.env.GOOGLE_CLIENT_ID
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+const backendUrl = process.env.BACKEND_URL
+const callbackURL = backendUrl
+  ? `${backendUrl}/api/users/auth/google/callback`
+  : null
+
 console.log(
-  'PASSPORT CONFIG - BACKEND_URL:',
-  `${process.env.BACKEND_URL}/api/users/auth/google/callback`
+  `[Passport Config] GOOGLE_CLIENT_ID Loaded: ${googleClientID ? 'Yes' : 'NO!'}`
 )
+// Avoid logging the actual secret in production logs if possible, just confirm its presence
+console.log(
+  `[Passport Config] GOOGLE_CLIENT_SECRET Loaded: ${
+    googleClientSecret ? 'Yes' : 'NO!'
+  }`
+)
+console.log(`[Passport Config] BACKEND_URL: ${backendUrl || 'MISSING!'}`)
+console.log(
+  `[Passport Config] Calculated Callback URL: ${
+    callbackURL || 'MISSING BACKEND_URL!'
+  }`
+)
+
+if (!googleClientID || !googleClientSecret || !callbackURL) {
+  console.error(
+    '[Passport Config] CRITICAL ERROR: Missing necessary Google OAuth environment variables or BACKEND_URL.'
+  )
+}
+// --- End Debug Logging ---
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.BACKEND_URL}/api/users/auth/google/callback`,
+      clientID: googleClientID, // Use the variable checked above
+      clientSecret: googleClientSecret, // Use the variable checked above
+      callbackURL: callbackURL, // Use the variable checked above
     },
     async (accessToken, refreshToken, profile, done) => {
+      console.log('[Passport Verify Callback] Triggered.') // Log when callback runs
       try {
-        const { id, displayName, emails, photos } = profile
+        if (!profile || !profile.emails || profile.emails.length === 0) {
+          console.error(
+            '[Passport Verify Callback] Google profile information incomplete (missing email).'
+          )
+          return done(new Error('Incomplete profile data from Google.'), null)
+        }
+        const email = profile.emails[0].value
+        console.log(
+          `[Passport Verify Callback] Processing Google login for email: ${email}`
+        )
+
+        const { id, displayName, photos } = profile
 
         // Find or create user in the database
-        let user = await User.findOne({ email: emails[0].value })
+        let user = await User.findOne({ email })
 
         if (!user) {
           user = new User({
             name: displayName,
-            email: emails[0].value,
+            email: email,
             username: `google_${id}`,
             profilePicture: photos[0].value,
             googleId: id,
@@ -48,8 +85,9 @@ passport.use(
 
           await user.save()
         }
-        return done(null, user)
+        return done(null, user) // Ensure user is defined
       } catch (err) {
+        console.error('[Passport Verify Callback] Error:', err)
         return done(err, null)
       }
     }
@@ -65,6 +103,7 @@ passport.deserializeUser(async (id, done) => {
     const user = await User.findById(id)
     done(null, user)
   } catch (err) {
+    console.error('[Passport DeserializeUser] Error:', err)
     done(err, null)
   }
 })
