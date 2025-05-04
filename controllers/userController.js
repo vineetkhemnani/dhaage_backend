@@ -91,7 +91,7 @@ export const handleGoogleLogin = async (req, res) => {
       return res.status(400).json({ error: 'Google authentication failed' })
     }
     generateTokenAndSetCookie(user._id, res)
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000')
+    res.redirect('http://localhost:3000')
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -100,8 +100,7 @@ export const handleGoogleLogin = async (req, res) => {
 export const getMe = async (req, res) => {
   // protectRoute ensures req.user is populated if cookie is valid
   try {
-    // You might want to fetch the latest user data instead of relying solely on req.user
-    // if req.user comes directly from the initial token payload without db lookup in protectRoute
+    
     const user = await User.findById(req.user._id)
       .select('-password')
       .select('-updatedAt')
