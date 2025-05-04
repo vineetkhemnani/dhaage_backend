@@ -5,14 +5,17 @@ import dotenv from 'dotenv'
 
 // Load environment variables
 dotenv.config()
-
+//Log environment variables during startup (for debugging purposes ONLY - remove sensitive logs before committing/production)
+// console.log('PASSPORT CONFIG - GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Loaded' : 'MISSING');
+// console.log('PASSPORT CONFIG - GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'Loaded' : 'MISSING');
+console.log('PASSPORT CONFIG - BACKEND_URL:', process.env.BACKEND_URL);
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `https://threads-copy-backend.vercel.app/api/users/auth/google/callback`,
+      callbackURL: `${process.env.BACKEND_URL}/api/users/auth/google/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
