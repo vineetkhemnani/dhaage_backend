@@ -8,7 +8,10 @@ dotenv.config()
 //Log environment variables during startup (for debugging purposes ONLY - remove sensitive logs before committing/production)
 // console.log('PASSPORT CONFIG - GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Loaded' : 'MISSING');
 // console.log('PASSPORT CONFIG - GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'Loaded' : 'MISSING');
-console.log('PASSPORT CONFIG - BACKEND_URL:', process.env.BACKEND_URL);
+console.log(
+  'PASSPORT CONFIG - BACKEND_URL:',
+  `${process.env.BACKEND_URL}/api/users/auth/google/callback`
+)
 
 passport.use(
   new GoogleStrategy(
