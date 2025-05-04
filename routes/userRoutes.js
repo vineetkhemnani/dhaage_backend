@@ -7,6 +7,7 @@ import {
   updateUser,
   getUserProfile,
   handleGoogleLogin,
+  getMe,
 } from '../controllers/userController.js'
 import protectRoute from '../middlewares/protectRoute.js'
 import passport from 'passport'
@@ -27,6 +28,8 @@ router.post('/logout', logoutUser)
 router.post('/follow/:id', protectRoute, followUnfollowUser)
 // when you hit /api/users/update/:id => update user using the dynamic id of the user
 router.put('/update/:id', protectRoute, updateUser)
+
+router.get('/me', protectRoute, getMe);
 
 // Google OAuth routes
 router.get(

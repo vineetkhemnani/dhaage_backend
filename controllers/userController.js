@@ -86,23 +86,34 @@ export const loginUser = async (req, res) => {
 
 export const handleGoogleLogin = async (req, res) => {
   try {
-    const user = req.user;
+    const user = req.user
     if (!user) {
-      return res.status(400).json({ error: 'Google authentication failed' });
+      return res.status(400).json({ error: 'Google authentication failed' })
     }
-    generateTokenAndSetCoofkie(user._id, res);
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      bio: user.bio,
-      profilePicture: user.profilePicture,
-    });
+    generateTokenAndSetCookie(user._id, res)
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000')
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-};
+}
+
+export const getMe = async (req, res) => {
+  // protectRoute ensures req.user is populated if cookie is valid
+  try {
+    // You might want to fetch the latest user data instead of relying solely on req.user
+    // if req.user comes directly from the initial token payload without db lookup in protectRoute
+    const user = await User.findById(req.user._id)
+      .select('-password')
+      .select('-updatedAt')
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    res.status(200).json(user)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+    console.error('Error in /me route:', error.message)
+  }
+}
 
 // logs out user by clearing the cookie
 export const logoutUser = async (req, res) => {
@@ -232,7 +243,6 @@ export const updateUser = async (req, res) => {
         arrayFilters: [{ 'reply.userId': userId }],
       }
     )
-
 
     // password should be null in response
     user.password = null
