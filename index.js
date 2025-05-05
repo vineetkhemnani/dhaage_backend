@@ -1,7 +1,6 @@
 // filepath: /Users/vineet/projects/dhaage/dhaage_backend/index.js
 import passport from 'passport'
-import './utils/config/passport.js'  // Updated path to passport config
-
+import './utils/config/passport.js'
 import express from 'express'
 import dotenv from 'dotenv'
 import connectDB from './db/connectDB.js'
@@ -24,33 +23,50 @@ cloudinary.config({
 })
 
 // middlewares
-app.use(express.json({ limit: '50mb' })) //parse JSON data in the req.body
-app.use(express.urlencoded({ extended: true })) //usually parses form data extended:true used to parse nested data if present
-app.use(cookieParser()) //parse cookies
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
-// Session middleware
-app.use(session({
-  secret: process.env.JWT_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}))
-
-// CORS configuration
-var allowedOrigins = [
+// CORS configuration - MOVE THIS ABOVE session and passport middleware
+const allowedOrigins = [
   'https://dhaage-backend.vercel.app',
   'https://dhaage.vercel.app',
   'https://dhaage.netlify.app',
   'http://localhost:3000',
 ]
+
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl requests)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          'The CORS policy for this site does not allow access from the specified Origin.'
+        return callback(new Error(msg), false)
+      }
+      return callback(null, true)
+    },
     methods: ['POST', 'GET', 'DELETE', 'PUT'],
     credentials: true,
+    exposedHeaders: ['Set-Cookie'],
+  })
+)
+
+// Session middleware - UPDATED cookie settings
+app.use(
+  session({
+    secret: process.env.JWT_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // true in production
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // IMPORTANT for cross-domain
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+    proxy: process.env.NODE_ENV === 'production', // Trust the proxy in production
   })
 )
 

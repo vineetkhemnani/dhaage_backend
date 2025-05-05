@@ -1,3 +1,4 @@
+// filepath: /Users/vineet/projects/dhaage/dhaage_backend/utils/helpers/generateTokenAndSetCookie.js
 import jwt from 'jsonwebtoken'
 
 const generateTokenAndSetCookie = (userId, res) => {
@@ -5,18 +6,17 @@ const generateTokenAndSetCookie = (userId, res) => {
     expiresIn: '15d',
   })
 
-  // Add an environment check for secure flag
   const isProduction = process.env.NODE_ENV === 'production'
 
   res.cookie('jwt', token, {
     httpOnly: true,
     maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days in milliseconds
-    sameSite: 'strict', // CSRF protection
-    secure: isProduction, // Only set to true in production (HTTPS environments)
-    // If your API and frontend are on different domains, you might need:
-    // domain: process.env.COOKIE_DOMAIN // e.g. ".yourdomain.com"
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    path: '/',
   })
 
   return token
 }
+
 export default generateTokenAndSetCookie
