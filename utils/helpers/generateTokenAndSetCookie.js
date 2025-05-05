@@ -5,17 +5,18 @@ const generateTokenAndSetCookie = (userId, res) => {
     expiresIn: '15d',
   })
 
-  const isProduction = process.env.NODE_ENV === 'production' // Vercel sets NODE_ENV to 'production'
+  // Add an environment check for secure flag
+  const isProduction = process.env.NODE_ENV === 'production'
 
   res.cookie('jwt', token, {
-    httpOnly: true, // Cannot be accessed by client-side scripts
-    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days in ms
-    sameSite: isProduction ? 'none' : 'strict', // Must be 'none' for cross-site cookies
-    secure: isProduction ? true : false, // Must be true if sameSite='none' (requires HTTPS)
-    // domain: isProduction ? '.yourdomain.com' : undefined // Optional: Set if needed for subdomains, ensure frontend/backend share a parent domain if used. For Netlify/Vercel on different root domains, this is likely not applicable/needed.
+    httpOnly: true,
+    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days in milliseconds
+    sameSite: 'strict', // CSRF protection
+    secure: isProduction, // Only set to true in production (HTTPS environments)
+    // If your API and frontend are on different domains, you might need:
+    // domain: process.env.COOKIE_DOMAIN // e.g. ".yourdomain.com"
   })
 
   return token
 }
-
 export default generateTokenAndSetCookie
